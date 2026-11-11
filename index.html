@@ -810,7 +810,14 @@
     }
     function renderAiDetail(live, card) {
       const items = live?.detail?.items || [];
-      return `<div class="section"><h3>AI 뉴스</h3>${items.length ? `<ul>${items.map(n=>`<li>${n.link ? `<a href="${n.link}" target="_blank">${cleanText(n.title, 100)}</a>` : cleanText(n.title, 100)}${n.summary ? ` — ${cleanText(n.summary, 120)}` : ''}</li>`).join('')}</ul>` : '<p class="subtitle">뉴스 수집이 아직 없습니다.</p>'}</div>`;
+      const note = live?.detail?.source_note || '공개 피드에서 선별한 조기 신호입니다.';
+      return `<div class="section"><h3>AI 뉴스 선별 기준</h3><p class="subtitle">${cleanText(note, 180)}</p></div>
+        <div class="section"><h3>지금 볼 AI 신호</h3>${items.length ? `<div class="news-list">${items.map(n=>`
+          <article class="flow-detail">
+            <h4>${n.url ? `<a href="${n.url}" target="_blank">${cleanText(n.title_ko || n.title, 120)}</a>` : cleanText(n.title_ko || n.title, 120)}</h4>
+            <p>${cleanText(n.summary || '', 180)}</p>
+            <div class="subtitle">${cleanText(n.source || '출처 미확인', 40)} · ${n.topic || 'AI'} · 중요도 ${n.importance || '보통'}</div>
+          </article>`).join('')}</div>` : '<p class="subtitle">뉴스 수집이 아직 없습니다.</p>'}</div>`;
     }
     function renderGenericDetail(live, card) {
       const bullets = (live?.bullets || card.bullets).slice(0, 10);
