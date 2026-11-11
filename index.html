@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>개인 운영실 대시보드</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #141b2f;
+      --panel2: #101729;
+      --card: #18223a;
+      --muted: #95a3bd;
+      --text: #ecf2ff;
+      --line: rgba(255,255,255,.09);
+      --blue: #72a7ff;
+      --green: #63d68a;
+      --yellow: #ffd166;
+      --red: #ff6b6b;
+      --gray: #8a94a6;
+      --chip: rgba(255,255,255,.08);
+      --shadow: 0 18px 50px rgba(0,0,0,.28);
+      --radius: 20px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top left, #1f3569 0, transparent 34rem), var(--bg);
+      color: var(--text);
+    }
+    button { font: inherit; }
+    .app { max-width: 1220px; margin: 0 auto; padding: 18px; }
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .hero {
+      background: linear-gradient(135deg, rgba(114,167,255,.18), rgba(99,214,138,.08)), var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .hero-row { display:flex; align-items:flex-start; justify-content:space-between; gap: 12px; }
+    h1 { margin: 0; font-size: clamp(24px, 4vw, 38px); letter-spacing: -.04em; }
+    .subtitle { color: var(--muted); margin-top: 6px; line-height: 1.5; }
+    .demo-pill {
+      flex: 0 0 auto;
+      border: 1px solid rgba(255,209,102,.45);
+      color: #ffe5a3;
+      background: rgba(255,209,102,.1);
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .status-strip {
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .status-box {
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.16);
+      border-radius: 12px;
+      padding: 7px;
+      min-height: 48px;
+    }
+    .label { color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+    .value { font-weight: 800; font-size: 15px; line-height: 1.35; }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .mode-btn, .refresh-btn {
+      border: 1px solid var(--line);
+      background: var(--chip);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .mode-btn.active { border-color: var(--blue); background: rgba(114,167,255,.18); }
+    .refresh-btn { margin-left: auto; border-color: rgba(99,214,138,.35); color: #bff7cf; }
+    .alert {
+      display:none;
+      margin-top: 12px;
+      border: 1px solid rgba(255,209,102,.35);
+      background: rgba(255,209,102,.09);
+      color: #ffe3a1;
+      border-radius: 14px;
+      padding: 12px;
+      line-height:1.5;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .card {
+      grid-column: span 6;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01)), var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+      min-height: 150px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .card:hover { transform: translateY(-2px); border-color: rgba(114,167,255,.4); }
+    .card.selected { border-color: var(--blue); background: #1c2a49; }
+    .card-head { display:flex; justify-content:space-between; gap: 8px; align-items:flex-start; }
+    .card-title { font-size: 18px; font-weight: 900; letter-spacing:-.02em; }
+    .badge { padding: 5px 8px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .ok { background: rgba(99,214,138,.14); color: #a8f2bd; border: 1px solid rgba(99,214,138,.35); }
+    .warn { background: rgba(255,209,102,.13); color: #ffe09b; border: 1px solid rgba(255,209,102,.35); }
+    .bad { background: rgba(255,107,107,.13); color: #ffc0c0; border: 1px solid rgba(255,107,107,.35); }
+    .unknown { background: rgba(149,163,189,.13); color: #d1d9e8; border: 1px solid rgba(149,163,189,.35); }
+    .metric-row { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .mini {
+      background: rgba(0,0,0,.14);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 9px;
+    }
+    .mini strong { display:block; font-size: 15px; }
+    ul { padding-left: 18px; margin: 6px 0 0; }
+    li { margin: 5px 0; line-height: 1.38; }
+    .source { margin-top:auto; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); padding-top: 10px; line-height:1.4; }
+    .detail {
+      margin-top: 16px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .detail-head {
+      padding: 16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap: 10px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.025);
+    }
+    .detail-title { margin:0; font-size: 24px; letter-spacing:-.03em; }
+    .detail-body { display:grid; grid-template-columns: 1.1fr .9fr; gap: 0; }
+    .pane { padding: 16px; border-right: 1px solid var(--line); }
+    .pane:last-child { border-right: 0; background: var(--panel2); }
+    .section { margin-bottom: 18px; }
+    .section h3 { margin: 0 0 8px; font-size: 16px; }
+    .table { width:100%; border-collapse: collapse; overflow:hidden; border-radius: 12px; }
+    .table th, .table td { border-bottom: 1px solid var(--line); padding: 10px 8px; text-align:left; vertical-align:top; font-size: 14px; }
+    .table th { color: var(--muted); font-size: 12px; font-weight:700; }
+    .codebox {
+      background: rgba(0,0,0,.23);
+      border: 1px solid var(--line);
+      padding: 12px;
+      border-radius: 12px;
+      color: #dbe7ff;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      line-height:1.45;
+    }
+    .footer-note { color: var(--muted); font-size: 12px; line-height:1.5; margin-top: 14px; }
+    @media (max-width: 900px) {
+      .status-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .card { grid-column: span 3; }
+      .detail-body { grid-template-columns: 1fr; }
+      .pane { border-right:0; border-bottom:1px solid var(--line); }
+    }
+    @media (max-width: 640px) {
+      .app { padding: 12px; }
+      .hero { padding: 15px; }
+      .hero-row { flex-direction: column; }
+      .status-strip { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+      .card { grid-column: span 1; min-height: auto; }
+      .refresh-btn { margin-left: 0; width: 100%; }
+      .mode-btn { flex: 1 1 30%; }
+      .metric-row { grid-template-columns: 1fr; }
+      .detail-head { flex-direction:column; }
+    }
+    /* UX refresh: warm light dashboard, less heavy than the first dark demo */
+    :root {
+      --bg: #f7f4ef;
+      --panel: #fffdf8;
+      --panel2: #fbf7f0;
+      --card: #fffdf8;
+      --muted: #756f66;
+      --text: #24211d;
+      --line: rgba(38, 32, 24, .12);
+      --blue: #2563eb;
+      --green: #188a48;
+      --yellow: #9a6700;
+      --red: #c2413a;
+      --gray: #5f6673;
+      --chip: #fffdf8;
+      --shadow: 0 10px 30px rgba(35, 28, 18, .08), 0 2px 8px rgba(35, 28, 18, .05);
+    }
+    body {
+      background:
+        radial-gradient(circle at 12% 0%, rgba(37, 99, 235, .12), transparent 28rem),
+        radial-gradient(circle at 100% 12%, rgba(24, 138, 72, .10), transparent 24rem),
+        var(--bg);
+      color: var(--text);
+    }
+    .hero { background: rgba(255, 253, 248, .9); border-radius: 24px; }
+    h1 { font-size: clamp(30px, 5vw, 48px); letter-spacing: -.06em; line-height: 1.02; }
+    .demo-pill { color: #7a5200; background: #fff7dc; border-color: rgba(154,103,0,.22); }
+    .status-box { background: #fffaf1; }
+    .mode-btn, .refresh-btn { background: #fffdf8; color: var(--text); font-weight: 750; }
+    .mode-btn.active { border-color: rgba(37,99,235,.35); background: #eef4ff; color: #164aad; }
+    .refresh-btn { color: #116b38; background: #edf9f1; border-color: rgba(24,138,72,.22); }
+    .alert { background: #fff7dc; color: #6f4a00; border-color: rgba(154,103,0,.22); font-weight: 650; }
+    .card { position: relative; background: var(--card); box-shadow: 0 2px 10px rgba(35, 28, 18, .05); min-height: 132px; }
+    .card:before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--accent, #d8d2c7); opacity: .85; }
+    .card:hover { border-color: rgba(37,99,235,.28); box-shadow: var(--shadow); }
+    .calendar-card { min-height: 620px; padding:14px; }
+    .calendar-card .calendar-preview { margin-top:4px; }
+    .ops-card { min-height: 118px; }
+    .card-title { letter-spacing: -.04em; }
+    .ok { background: #edf9f1; color: #188a48; border-color: rgba(24,138,72,.22); }
+    .warn { background: #fff7dc; color: #9a6700; border-color: rgba(154,103,0,.20); }
+    .bad { background: #fff0ed; color: #c2413a; border-color: rgba(194,65,58,.18); }
+    .unknown { background: #f1f2f4; color: #5f6673; border-color: rgba(95,102,115,.18); }
+    .mini { background: #fbf7f0; }
+    li { color: #3a352f; }
+    .detail { background: var(--panel); border-radius: 22px; }
+    .detail-head { background: linear-gradient(180deg,#fffdf8,#fbf7ef); }
+    .pane:last-child { background: #fbf8f2; }
+    .table { background:#fffdf8; }
+    .table th { background:#fbf7ef; }
+    .codebox { background:#27231d; color:#f8efe0; }
+    .click-row { cursor: pointer; }
+    .click-row:hover td { background: #fff7dc; }
+    .flow-detail { margin-top: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: #fffaf1; }
+    .flow-detail h4 { margin: 0 0 8px; }
+    .calendar-shell { display: grid; gap: 12px; }
+    .calendar-summary { display:grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 8px; }
+    .calendar-grid { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 6px; }
+    .dow { color: var(--muted); font-size: 12px; font-weight: 800; text-align:center; padding: 4px 0; }
+    .day-cell { min-height: 92px; border:1px solid var(--line); border-radius: 13px; background:#fffdf8; padding: 7px; overflow:hidden; cursor:pointer; transition:border-color .12s ease, box-shadow .12s ease; }
+    .day-cell.out { opacity:.42; background:#fbf7f0; }
+    .day-cell.today { border-color:#1d4ed8; background:#eaf2ff; box-shadow: inset 0 0 0 2px rgba(37,99,235,.18); }
+    .day-cell.selected-day { border-color:#111827; box-shadow: inset 0 0 0 2px rgba(17,24,39,.2); }
+    .day-num { display:inline-flex; align-items:center; justify-content:center; min-width:24px; height:24px; border-radius:999px; font-weight:900; font-size:12px; }
+    .today .day-num { background:#1d4ed8; color:white; }
+    .event-pill { margin-top:5px; padding:4px 6px; border-radius:8px; font-size:11px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border:1px solid rgba(38,32,24,.08); }
+    .event-pill.chill { background:#fff3e7; color:#9a3412; }
+    .event-pill.airbnb { background:#ecfeff; color:#0e7490; }
+    .event-pill.personal { background:#f1f5f9; color:#334155; }
+    .calendar-preview { display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:4px; margin-top:2px; }
+    .mini-day { min-height:86px; border:1px solid var(--line); border-radius:10px; padding:4px; background:#fffdf8; font-size:10px; cursor:pointer; overflow:hidden; }
+    .mini-day.today { border-color:#1d4ed8; background:#eaf2ff; box-shadow: inset 0 0 0 1px rgba(37,99,235,.2); }
+    .mini-day.out { opacity:.38; }
+    .mini-day .n { font-weight:900; display:block; font-size:11px; margin-bottom:2px; }
+    .mini-event { display:block; margin-top:2px; padding:2px 3px; border-radius:5px; font-size:9px; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mini-event.chill { background:#fff3e7; color:#9a3412; }
+    .mini-event.airbnb { background:#ecfeff; color:#0e7490; }
+    .mini-event.coupang { background:#ecfdf3; color:#166534; }
+    .mini-event.personal { background:#f1f5f9; color:#334155; }
+    .mini-dot { width:5px; height:5px; border-radius:999px; display:inline-block; margin-right:2px; }
+    .mini-dot.chill { background:#fb923c; }
+    .mini-dot.airbnb { background:#22d3ee; }
+    .mini-dot.coupang { background:#16a34a; }
+    .mini-dot.personal { background:#94a3b8; }
+    .event-pill.coupang { background:#ecfdf3; color:#166534; }
+    .event-pill.more { background:#f8fafc; color:#64748b; }
+    .calendar-legend { display:flex; gap:8px; flex-wrap:wrap; color:var(--muted); font-size:12px; }
+    .legend-dot { width:10px; height:10px; border-radius:999px; display:inline-block; margin-right:4px; vertical-align:-1px; }
+    .detail-view { display: none; }
+    body.detail-open .home-view { display: none; }
+    body.detail-open .detail-view { display: block; }
+    .detail-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:18px 2px 10px; }
+    .back-btn { border:1px solid rgba(37,99,235,.24); background:#eef4ff; color:#164aad; padding:10px 11px; border-radius:12px; cursor:pointer; font-weight:750; }
+    @media (max-width: 640px) { .detail-toolbar { flex-direction: column; align-items: stretch; } }
+    @media (max-width: 640px) {
+      .app { padding: 8px; }
+      .top-nav { margin-bottom: 6px; }
+      .hero { padding: 10px; border-radius: 16px; margin-bottom: 8px; }
+      .hero-row { gap: 8px; }
+      h1 { font-size: 25px; }
+      .subtitle { font-size: 12px; line-height: 1.35; margin-top: 4px; }
+      .status-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+      .status-box { min-height: auto; padding: 6px; border-radius: 10px; }
+      .status-box .label { font-size: 10px; margin-bottom: 2px; }
+      .status-box .value { font-size: 11px; line-height: 1.18; }
+      .controls { grid-template-columns: 1fr; gap: 5px; }
+      .refresh-btn { padding: 9px 10px; font-size: 12px; border-radius: 10px; }
+      .refresh-btn { grid-column: auto; }
+      .section-title-row { margin: 9px 2px 7px; }
+      .section-title-row h2 { font-size: 16px; }
+      .section-title-row span { font-size: 11px; }
+      .grid { grid-template-columns: 1fr; gap: 10px; }
+      .card { grid-column: span 1; min-height: 112px; padding: 11px; border-radius: 14px; gap: 7px; }
+      .calendar-card { min-height: 650px; padding: 12px; }
+      .card-title { font-size: 14px; }
+      .badge { font-size: 10px; padding: 3px 6px; }
+      .metric-row { grid-template-columns: 1fr; gap: 5px; }
+      .mini { padding: 6px; border-radius: 9px; }
+      .mini .label { font-size: 10px; }
+      .mini strong { font-size: 12px; }
+      .card ul { padding-left: 14px; margin-top: 2px; }
+      .card li { font-size: 11px; line-height: 1.25; margin: 3px 0; }
+      .card li:nth-child(n+3) { display: none; }
+      .source { font-size: 10px; padding-top: 6px; }
+      .calendar-summary { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .calendar-grid { gap: 3px; }
+      .dow { font-size: 10px; }
+      .day-cell { min-height: 72px; padding: 4px; border-radius: 9px; }
+      .day-num { min-width:20px; height:20px; font-size:11px; }
+      .event-pill { font-size: 9px; padding: 3px 4px; margin-top:3px; }
+      .mini-day { min-height:80px; padding:2px; font-size:8px; border-radius:8px; }
+      .mini-day .n { font-size:10px; margin-bottom:1px; }
+      .calendar-preview { gap:2px; }
+      .mini-event { font-size:7.4px; padding:1px 2px; margin-top:1px; line-height:1.08; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="topbar">
+      <div class="hero">
+        <div class="hero-row">
+          <div>
+            <h1>오늘 운영실</h1>
+            <div class="subtitle">클라우드에 저장된 마지막 운영실 스냅샷 기준입니다.</div>
+          </div>
+          <div class="demo-pill">CLOUD SNAPSHOT</div>
+        </div>
+        <div class="status-strip" id="statusStrip"></div>
+        <div class="controls">
+          <button class="refresh-btn" id="actualRefresh">새로고침</button>
+        </div>
+        <div class="alert" id="globalAlert"></div>
+      </div>
+    </section>
+
+    <section class="home-view">
+      <div class="section-title-row"><h2>캘린더</h2><span>날짜를 누르면 바로 상세로 들어갑니다</span></div>
+      <section class="grid" id="cards"></section>
+    </section>
+    <section class="detail-view">
+      <div class="detail-toolbar"><button class="back-btn" id="backHome">← 대시보드로 돌아가기</button><span class="subtitle">상세 화면</span></div>
+      <section class="detail" id="detail"></section>
+    </section>
+    <p class="footer-note">보안 원칙: 실제 업로드 전 항목표 승인 필요 · 원본 영상/이미지/음성/계좌/카드/인증정보 저장 금지 · 칠링 예약은 이름 없이 예약번호·시간·인원 우선.</p>
+  </main>
+
+  <script src="./config.js"></script>
+  <script>
+    const modes = {
+      normal: {
+        pc: '정상', pcClass: 'ok', pcLast: '08:12', snapshot: '08:10', banner: '',
+        sourceSummary: '전체 원본 정상', freshness: '정상'
+      },
+      partial: {
+        pc: '정상', pcClass: 'ok', pcLast: '08:12', snapshot: '08:10',
+        banner: '일부 원본 갱신에 실패했습니다. 실패 항목은 마지막 정상 스냅샷을 표시하며, 0이나 정상으로 처리하지 않습니다.',
+        sourceSummary: '일부 원본 실패', freshness: '혼합'
+      },
+      offline: {
+        pc: '확인 불가', pcClass: 'bad', pcLast: '06:12', snapshot: '06:10',
+        banner: 'PC 연결 확인 불가 상태입니다. 원인을 단정하지 않고 마지막 PC 통신 시각과 마지막 정상 스냅샷 기준으로 표시합니다.',
+        sourceSummary: '현재 원본 확인 불가', freshness: '마지막 정상값'
+      }
+    };
+
+    const baseCards = [
+      {
+        id: 'calendar', title: '오늘 할 일 · 캘린더', icon: '①', source: 'Google Calendar',
+        status: { normal:['정상','ok'], partial:['정상','ok'], offline:['마지막 스냅샷','unknown'] },
+        bullets: ['칠스 카드결제, 카메라 확인', '에어비앤비 청소', '스마트키 건전지 갈기', '내일 오전: 휴무'],
+        minis: [['오늘', '3개'], ['내일 오전', '1개']],
+        detailTitle: '오늘 할 일 · 캘린더 상세',
+        detailRows: [
+          ['Google Calendar', '성공', '일정 제목·시간·종일 여부', '마지막 정상 일정 표시 / 새 일정 없음으로 처리 금지'],
+          ['대시보드 스냅샷', '성공', '오늘·내일 오전 요약', '마지막 스냅샷 + 연결 상태 표시']
+        ],
+        stored: ['일정 제목', '날짜/시간', '종일 여부', '프로젝트 분류', '마지막 수집 시각'],
+        excluded: ['일정 설명 전문', '참석자/위치 상세', '건강·가족 민감 일정은 필터 후보']
+      },
+      {
+        id: 'finance', title: '재무통제실', icon: '②', source: '재무통제실 원장 + 재무계산.py',
+        status: { normal:['주의','warn'], partial:['일부 실패','warn'], offline:['마지막 계산값','unknown'] },
+        bullets: ['6개월 현금흐름: 12월 위험', '분기/반기 납부 후보 1건', '납부일 누락 1건', '할부 자동 확정과 실제 결제 확인 분리'],
+        minis: [['11월 순흐름', '+420,000'], ['12월 위험', '-1,280,000']],
+        detailTitle: '재무통제실 상세',
+        detailRows: [
+          ['수입/지출/대출/할부 원장', '성공', '가용자금·월 수입/지출·대출/할부 요약', '마지막 정상 계산값 유지'],
+          ['세금예정.md', '일부 실패 데모', '분기/반기 납부, 납부일', '납부일 없으면 확정 처리 금지'],
+          ['재무계산.py', '성공', '6개월 현금흐름', '계산 실패 시 이전값 + 실패 경고']
+        ],
+        stored: ['가용자금', '월 수입/지출', '대출/할부 총액과 항목별 요약', '세금 예정 요약', '6개월 현금흐름', '계산 기준/오류 상태'],
+        excluded: ['계좌번호', '카드번호', '비밀번호/인증정보', '원장 원문 전체', '민감 메모'],
+        financeDemo: true
+      },
+      {
+        id: 'chill', title: '칠링스페이스', icon: '③', source: 'Calendar / 광고 Sheets / 매니저 페이지 / 칠링 OS',
+        status: { normal:['정상','ok'], partial:['청소 미확인','warn'], offline:['마지막 스냅샷','unknown'] },
+        bullets: ['예약 #R-TEST-001 / 12~18시 / 4명', '청소: 매니저 페이지 기준 미확인', '광고 ENABLED / 비용 매핑 불일치', '블로그 초안 1건 대기'],
+        minis: [['예약', '1건'], ['청소', '미확인']],
+        detailTitle: '칠링스페이스 상세',
+        detailRows: [
+          ['Google Calendar', '성공', '예약번호·시간·인원', '마지막 예약 스냅샷 표시'],
+          ['매니저 페이지', '미확인 데모', '청소/세팅 상태', '확인 안 되면 미확인으로 표시'],
+          ['광고 Sheets', '성공', '광고 상태·검색어·비용 경고', '마지막 정상 수치 + 실패 경고']
+        ],
+        stored: ['예약번호', '날짜/시간', '인원', '상품/타임', '예약 상태', '청소/세팅 필요 여부', '광고 경고', '블로그 초안 제목'],
+        excluded: ['고객명', '연락처', '톡톡 원문', '계좌 안내', '고객 요청 원문']
+      },
+      {
+        id: 'inaworld', title: '이나월드', icon: '④', source: '이나월드 폴더 / 분석노트 / 성과자료',
+        status: { normal:['정상','ok'], partial:['정상','ok'], offline:['마지막 분석','unknown'] },
+        bullets: ['촬영 후보 A: 누나/동생 반응', '편집 우선순위 2개', '콘텐츠 추천 3개', '민감 항목 2개 제외됨'],
+        minis: [['촬영 후보', '2개'], ['민감 제외', '2개']],
+        detailTitle: '이나월드 상세',
+        detailRows: [
+          ['기획노트/개선로그', '성공', '촬영 후보·추천', '마지막 추천 표시 / 새 추천 생성 안 됨'],
+          ['성과 자료', '성공', '최근 성과 요약', '마지막 성과 스냅샷 표시'],
+          ['민감 필터', '성공 데모', '건강·어린이집·생활동선 제외', '필터 실패 시 업로드 차단']
+        ],
+        stored: ['촬영 후보', '기획/콘텐츠 추천', '최근 성과 요약', '편집 우선순위', '제목/썸네일 후보', '기존 분석/레퍼런스 요약'],
+        excluded: ['가족 원본 영상', '이미지/프레임/썸네일', '음성 파일', '건강/어린이집/생활동선', '가족 사적 대화', '민감 파일명']
+      },
+      {
+        id: 'inbox', title: '프로젝트 · 인박스', icon: '⑤', source: '대시보드 인박스 / 프로젝트 등록 요청',
+        status: { normal:['정상','ok'], partial:['정상','ok'], offline:['마지막 스냅샷','unknown'] },
+        bullets: ['미처리 인박스 4개', '새 프로젝트 후보 1개', '최근: 개인 운영실 대시보드', '등록 요청 시 아는 내용 먼저 정리'],
+        minis: [['미처리', '4개'], ['후보', '1개']],
+        detailTitle: '프로젝트 · 인박스 상세',
+        detailRows: [
+          ['인박스', '성공', '제목·상태·분류·생성일', '마지막 정상 목록 표시'],
+          ['프로젝트 등록 요청', '대기', '알고 있는 내용/모르는 질문', '임의 등록 금지']
+        ],
+        stored: ['인박스 제목', '상태', '분류', '생성일', '다음 질문 필요 여부'],
+        excluded: ['원문 전체 중 민감 내용', '인증/계좌/가족 사적 내용']
+      },
+      {
+        id: 'ai', title: 'AI 뉴스 · 트렌드', icon: '⑥', source: '외부 뉴스/RSS/검색',
+        status: { normal:['오래됨','warn'], partial:['수집 실패','warn'], offline:['오래됨','warn'] },
+        bullets: ['새 모델 출시 흐름', 'AI 에이전트 투자 증가', '영상 분석 도구 업데이트', '2일 전 수집: 새로 수집 필요'],
+        minis: [['뉴스', '3개'], ['상태', '오래됨']],
+        detailTitle: 'AI 뉴스 · 트렌드 상세',
+        detailRows: [
+          ['외부 뉴스/RSS', '오래됨 데모', '제목·출처·링크·요약', '마지막 뉴스 + 오래됨 배지'],
+          ['적용 가능성', '성공', '이나월드/칠링 적용 후보', '새 수집 실패 시 이전 추천 유지']
+        ],
+        stored: ['제목', '출처', '링크', '요약', '분류', '찬준님 적용 가능성', '수집 시각'],
+        excluded: ['로그인 필요한 원문 전문', '유료/비공개 자료']
+      }
+    ];
+
+    let currentMode = 'normal';
+    let selected = 'calendar';
+    let selectedCalendarDateOnly = null;
+    let snapshot = null;
+
+    function liveCard(id) { return snapshot?.cards?.[id]; }
+    function liveStatusTuple(id, fallback) {
+      if (currentMode !== 'normal') return fallback;
+      const status = liveCard(id)?.status;
+      if (status === 'ok') return ['정상','ok'];
+      if (status === 'warning' || status === 'stale') return ['주의','warn'];
+      if (status === 'failed') return ['실패','bad'];
+      return fallback;
+    }
+
+    function statusFor(card) {
+      return liveStatusTuple(card.id, card.status[currentMode] || card.status.normal);
+    }
+    function renderStatus() {
+      const m = modes[currentMode];
+      if (currentMode === 'normal' && snapshot?.meta) {
+        m.pcLast = (snapshot.meta.pc_last_seen_at || '').slice(11,16) || m.pcLast;
+        m.snapshot = (snapshot.meta.generated_at || '').slice(11,16) || m.snapshot;
+        m.sourceSummary = '로컬 스냅샷 읽음';
+        m.freshness = '외부 업로드 없음';
+      }
+      document.getElementById('statusStrip').innerHTML = `
+        <div class="status-box"><div class="label">PC 연결</div><div class="value"><span class="badge ${m.pcClass}">${m.pc}</span></div></div>
+        <div class="status-box"><div class="label">마지막 PC 통신</div><div class="value">${m.pcLast}</div></div>
+        <div class="status-box"><div class="label">마지막 정상 스냅샷</div><div class="value">${m.snapshot}</div></div>
+        <div class="status-box"><div class="label">원본/최신성</div><div class="value">${m.sourceSummary} · ${m.freshness}</div></div>`;
+      const alert = document.getElementById('globalAlert');
+      alert.style.display = m.banner ? 'block' : 'none';
+      alert.textContent = m.banner;
+    }
+    function calendarPreviewHtml(live) {
+      const events = live?.detail?.events || [];
+      const today = live?.detail?.today || new Date().toISOString().slice(0,10);
+      const base = new Date(today + 'T00:00:00');
+      const year = base.getFullYear();
+      const month = base.getMonth();
+      const first = new Date(year, month, 1);
+      const gridStart = new Date(first);
+      gridStart.setDate(first.getDate() - first.getDay());
+      const grouped = {};
+      events.forEach(e => { const k = eventDate(e); (grouped[k] ||= []).push(e); });
+      const cells = [];
+      for (let i=0; i<35; i++) {
+        const d = new Date(gridStart);
+        d.setDate(gridStart.getDate() + i);
+        const iso = isoDateLocal(d);
+        const items = grouped[iso] || [];
+        const cls = ['mini-day'];
+        if (d.getMonth() !== month) cls.push('out');
+        if (iso === today) cls.push('today');
+        const previews = items.slice(0,4).map(e => `<span class="mini-event ${e.category || 'personal'}">${eventLine(e, 18)}</span>`).join('');
+        const more = items.length > 4 ? `<span class="mini-event personal">+${items.length - 4}개</span>` : '';
+        cells.push(`<div class="${cls.join(' ')}" data-calendar-preview-date="${iso}" title="${items.map(e=>cleanText(e.summary,40)).join(', ')}"><span class="n">${d.getDate()}</span>${previews}${more}</div>`);
+      }
+      return `<div class="calendar-preview">${cells.join('')}</div>`;
+    }
+    function attachCalendarPreviewHandlers() {
+      document.querySelectorAll('[data-calendar-preview-date]').forEach(cell => cell.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        selected = 'calendar';
+        selectedCalendarDateOnly = cell.dataset.calendarPreviewDate;
+        openDetail();
+      }));
+    }
+    function renderCards() {
+      const order = ['calendar', 'ai', 'inbox', 'chill', 'inaworld', 'finance'];
+      const orderedCards = order.map(id => baseCards.find(c => c.id === id)).filter(Boolean);
+      document.getElementById('cards').innerHTML = orderedCards.map(card => {
+        const [text, cls] = statusFor(card);
+        const live = liveCard(card.id);
+        const minis = live?.minis || card.minis;
+        const bullets = live?.bullets || card.bullets;
+        const body = card.id === 'calendar'
+          ? calendarPreviewHtml(live)
+          : `<div class="metric-row">${minis.map(([k,v]) => `<div class="mini"><div class="label">${k}</div><strong>${v}</strong></div>`).join('')}</div><ul>${bullets.map(b => `<li>${b}</li>`).join('')}</ul>`;
+        const cardClass = card.id === 'calendar' ? 'card calendar-card' : 'card ops-card';
+        return `<article class="${cardClass}" data-id="${card.id}" style="--accent:${({calendar:'#8b5cf6', finance:'#2563eb', chill:'#f97316', inaworld:'#ec4899', inbox:'#14b8a6', ai:'#111827'})[card.id] || '#d8d2c7'}">
+          <div class="card-head"><div><div class="label">${card.icon}</div><div class="card-title">${card.title}</div></div><span class="badge ${cls}">${text}</span></div>
+          ${body}
+          <div class="source">원본: ${card.source}<br/>${card.id === 'calendar' ? '날짜를 누르면 상세 내역 열기' : '눌러서 상세 화면 열기'}</div>
+        </article>`;
+      }).join('');
+      document.querySelectorAll('.card').forEach(el => el.addEventListener('click', () => { selected = el.dataset.id; selectedCalendarDateOnly = null; openDetail(); }));
+      attachCalendarPreviewHandlers();
+    }
+    function cleanText(s, max=90) {
+      const t = String(s || '')
+        .replace(/[*_`#>]/g, '')
+        .replace(/^-\s*/, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      return t.length > max ? t.slice(0, max - 1) + '…' : t;
+    }
+    function won(n) { return typeof n === 'number' ? n.toLocaleString('ko-KR') + '원' : (n || '미확인'); }
+    function rows(items, cols) {
+      return `<table class="table"><tbody>${items.map(item => `<tr>${cols.map(c => `<td>${c(item)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    }
+    function financeDetailBox(kind) {
+      const d = liveCard('finance')?.detail || {};
+      const target = document.getElementById('financeMiniDetail');
+      if (!target) return;
+      if (kind === 'income') {
+        const items = Object.entries(d.income_assumptions || {}).map(([name, amount]) => ({name, amount}));
+        target.innerHTML = `<h4>${d.cycle_start || ''}~${d.cycle_end || ''} 들어올 돈</h4>${items.length ? rows(items, [x=>x.name, x=>won(x.amount)]) : '<p class="subtitle">수입 내역 없음</p>'}`;
+      } else if (kind === 'upcoming') {
+        const items = d.cycle_outgoing || [];
+        const totalRow = `<div class="flow-detail"><strong>이번 사이클 지출 합계: ${won(d.cycle_total)}</strong></div>`;
+        target.innerHTML = `<h4>${d.cycle_start || ''}~${d.cycle_end || ''} 지출 전체</h4>${items.length ? rows(items, [x=>x.date, x=>x.kind, x=>x.name, x=>x.amount || won(x.amt)]) + totalRow : '<p class="subtitle">이번 사이클 지출 내역 없음</p>'}`;
+      } else if (kind === 'loans') {
+        const items = d.loans || [];
+        target.innerHTML = `<h4>대출 전체</h4>${items.length ? rows(items, [x=>x.name, x=>x.institution || '', x=>x.balance, x=>`${x.payment || ''} / ${x.cycle || ''}`, x=>x.maturity || '']) : '<p class="subtitle">대출 내역 없음</p>'}`;
+      } else if (kind === 'installments') {
+        const items = d.installments || [];
+        const principal = items.reduce((sum, x) => sum + Number(String(x.left || '').replace(/.*·\s*/, '').replace(/[^0-9]/g, '') || 0), 0);
+        const totalRow = items.length ? `<div class="flow-detail"><strong>표시된 할부 잔여원금 합계: ${won(principal)}</strong></div>` : '';
+        target.innerHTML = `<h4>할부 전체</h4>${items.length ? rows(items, [x=>x.name, x=>x.monthly, x=>x.progress || '', x=>x.left || '', x=>x.due_day ? `${x.due_day}일` : '']) + totalRow : '<p class="subtitle">할부 내역 없음</p>'}`;
+      }
+    }
+    function flowTable(items) {
+      return `<table class="table"><tbody>${items.map((x, i) => `<tr class="click-row" data-flow-idx="${i}"><td>${x.cycle}</td><td>예상수입 ${won(x.income_display ?? x.income_basic)}</td><td>지출 ${won(x.expenses)}</td><td>예상잔액 ${won(x.end_balance_display ?? x.end_balance_basic)}</td></tr>`).join('')}</tbody></table>`;
+    }
+    function openFlowPage(index) {
+      const row = (liveCard('finance')?.detail?.forecast?.rows || [])[index];
+      if (!row) return;
+      const incomeParts = [];
+      if (row.income_display != null) incomeParts.push(['예상수입 합계', won(row.income_display)]);
+      if (row.income_confirmed != null) incomeParts.push(['원장 확정/예정', won(row.income_confirmed)]);
+      if (row.income_assumed != null) incomeParts.push(['추가 반영 수입', won(row.income_assumed)]);
+      const incomeDetail = Object.entries(row.income_detail || {}).map(([name, v]) => ({ name, amount: v?.기본 ?? 0 })).filter(x => x.amount);
+      const actualIncome = Object.entries(row.actual_income || {}).map(([name, amount]) => ({ name, amount }));
+      const scheduledIncome = Object.entries(row.scheduled_income || {}).map(([name, amount]) => ({ name, amount }));
+      const dues = row.dues || [];
+      document.getElementById('detail').innerHTML = `
+        <div class="detail-head">
+          <div><h2 class="detail-title">${row.cycle}</h2><div class="subtitle">수입과 지출 세부내역 전체</div></div>
+          <span class="badge warn">월별 상세</span>
+        </div>
+        <div class="detail-body single">
+          <div class="pane">
+            <button class="back-btn" id="backFinanceDetail">← 재무 상세로 돌아가기</button>
+            <div class="section"><h3>수입 요약</h3>${rows(incomeParts.map(([k,v])=>({k,v})), [x=>x.k, x=>x.v])}</div>
+            <div class="section"><h3>원장 수입 내역</h3>${incomeDetail.length ? rows(incomeDetail, [x=>x.name, x=>won(x.amount)]) : '<p class="subtitle">원장에 잡힌 추가 수입 없음</p>'}</div>
+            <div class="section"><h3>실제/예정 수입</h3>${(actualIncome.length || scheduledIncome.length) ? rows([...actualIncome.map(x=>({...x,type:'실제'})), ...scheduledIncome.map(x=>({...x,type:'예정'}))], [x=>x.type, x=>x.name, x=>won(x.amount)]) : '<p class="subtitle">별도 실제/예정 수입 없음</p>'}</div>
+            <div class="section"><h3>지출 내역 전체</h3>${dues.length ? rows(dues, [x=>x.date, x=>x.kind, x=>x.name, x=>won(x.amt), x=>cleanText(x.memo || '', 80)]) : '<p class="subtitle">지출 내역 없음</p>'}</div>
+          </div>
+        </div>`;
+      document.getElementById('backFinanceDetail').addEventListener('click', () => { selected = 'finance'; renderDetail(); attachFinanceHandlers(); });
+    }
+    function toggleRemainingExpenses() {
+      const box = document.getElementById('remainingExpensesBody');
+      const btn = document.getElementById('remainingExpensesToggle');
+      if (!box || !btn) return;
+      const open = box.style.display !== 'none';
+      box.style.display = open ? 'none' : 'block';
+      btn.textContent = open ? '펼치기' : '접기';
+    }
+    function toggleInstallments() {
+      const box = document.getElementById('installmentsBody');
+      const btn = document.getElementById('installmentsToggle');
+      if (!box || !btn) return;
+      const open = box.style.display !== 'none';
+      box.style.display = open ? 'none' : 'block';
+      btn.textContent = open ? '펼치기' : '접기';
+    }
+    function toggleForecast() {
+      const box = document.getElementById('forecastBody');
+      const btn = document.getElementById('forecastToggle');
+      if (!box || !btn) return;
+      const open = box.style.display !== 'none';
+      box.style.display = open ? 'none' : 'block';
+      btn.textContent = open ? '펼치기' : '접기';
+    }
+    function attachFinanceHandlers() {
+      document.querySelectorAll('[data-flow-idx]').forEach(row => row.addEventListener('click', () => openFlowPage(Number(row.dataset.flowIdx))));
+      document.querySelectorAll('[data-finance-box]').forEach(box => box.addEventListener('click', () => financeDetailBox(box.dataset.financeBox)));
+      document.getElementById('remainingExpensesToggle')?.addEventListener('click', toggleRemainingExpenses);
+      document.getElementById('installmentsToggle')?.addEventListener('click', toggleInstallments);
+      document.getElementById('forecastToggle')?.addEventListener('click', toggleForecast);
+    }
+    function simpleStateText() {
+      if (currentMode === 'offline') return '지금 새로 확인하지 못해 마지막 저장본을 보여줍니다.';
+      if (currentMode === 'partial') return '일부 자료는 갱신 실패라 마지막 확인값 또는 미확인으로 표시합니다.';
+      return snapshot ? '방금 PC에서 읽은 로컬 자료 기준입니다.' : '아직 실제 스냅샷을 읽지 못했습니다.';
+    }
+    function renderFinanceDetail(live, card) {
+      const d = live?.detail || {};
+      const o = d.overview || {};
+      const remainingOut = d.remaining_outgoing || [];
+      const installments = (d.installments || []);
+      const forecast = (d.forecast?.rows || []).slice(0, 6);
+      const note = d.forecast_note || '';
+      const warnings = (d.warnings || []).slice(0, 6);
+      const assumedIncomeTotal = Object.values(d.income_assumptions || {}).reduce((a,b)=>a+(Number(b)||0),0);
+      const firstForecast = forecast[0] || {};
+      const ledgerIncome = Number(firstForecast.income_confirmed ?? firstForecast.income_basic ?? 0);
+      const dashboardAddIncome = Number(firstForecast.income_assumed ?? 0);
+      const displayForecastIncome = Number(firstForecast.income_display ?? (ledgerIncome + dashboardAddIncome));
+      return `
+        <div class="section"><h3>한눈에</h3><p class="subtitle">기준 기간: ${d.income_period || '25~24'}</p>
+          <div class="metric-row">
+            <div class="mini click-row" data-finance-box="income"><div class="label">${d.cycle_start || ''}~${d.cycle_end || ''} 수입</div><strong>${won(assumedIncomeTotal)}</strong></div>
+            <div class="mini click-row" data-finance-box="upcoming"><div class="label">${d.cycle_start || ''}~${d.cycle_end || ''} 지출</div><strong>${won(d.cycle_total)}</strong></div>
+            <div class="mini click-row" data-finance-box="loans"><div class="label">대출잔액</div><strong>${o['총 대출잔액'] || '미확인'}</strong></div>
+            <div class="mini click-row" data-finance-box="installments"><div class="label">할부잔액</div><strong>${o['총 할부잔액'] || '미확인'}</strong></div>
+          </div>
+          <div id="financeMiniDetail" class="flow-detail"><p class="subtitle">위 4개 항목을 누르면 전체 상세가 나옵니다.</p></div>
+        </div>
+        <div class="section"><h3>수입 기준</h3>
+          <p class="subtitle">원장 forecast와 대시보드 보정수입을 분리해서 봅니다. 원장이 적자처럼 보여도, 대시보드는 쿠팡·칠링·Airbnb 확인/가정 수입을 더해 운영 판단용으로 표시합니다.</p>
+          <div class="metric-row">
+            <div class="mini"><div class="label">다음 25~24 원장 forecast</div><strong>${won(ledgerIncome)}</strong></div>
+            <div class="mini"><div class="label">대시보드 보정수입</div><strong>${won(dashboardAddIncome)}</strong></div>
+            <div class="mini"><div class="label">다음 25~24 표시수입</div><strong>${won(displayForecastIncome)}</strong></div>
+          </div>
+        </div>
+        <div class="section"><h3>들어올 돈</h3>
+          ${d.income_assumptions ? rows(Object.entries(d.income_assumptions).map(([name, amount]) => ({name, amount})), [x=>x.name, x=>won(x.amount)]) : '<p class="subtitle">예상수입 확인 필요</p>'}
+        </div>
+        <div class="section"><h3>남은 지출</h3><p class="subtitle">오늘부터 이번 사이클 끝까지 남은 지출입니다. <button class="back-btn" id="remainingExpensesToggle" type="button">펼치기</button></p>
+          <div id="remainingExpensesBody" style="display:none">${remainingOut.length ? rows(remainingOut, [x=>x.date, x=>x.kind, x=>x.name, x=>x.amount || won(x.amt)]) + `<div class="flow-detail"><strong>남은 지출 합계: ${won(d.remaining_total)}</strong></div>` : '<p class="subtitle">해당 기간 남은 예정 지출을 읽지 못했습니다.</p>'}</div>
+        </div>
+        <div class="section"><h3>할부 확인</h3><p class="subtitle">전체 할부 목록입니다. <button class="back-btn" id="installmentsToggle" type="button">펼치기</button></p>
+          <div id="installmentsBody" style="display:none">${installments.length ? rows(installments, [x=>x.name, x=>x.monthly, x=>x.progress || x.remain_count, x=>x.left || x.this_month, x=>x.due_day ? `${x.due_day}일` : '']) : '<p class="subtitle">할부 자료를 읽지 못했습니다.</p>'}</div>
+        </div>
+        <div class="section"><h3>6개월 흐름</h3><p class="subtitle">월별 줄을 누르면 새 상세 화면으로 들어갑니다. <button class="back-btn" id="forecastToggle" type="button">펼치기</button></p>
+          ${note ? `<p class="subtitle">${note}</p>` : ''}
+          <div id="forecastBody" style="display:none">${forecast.length ? flowTable(forecast) : '<p class="subtitle">6개월 전망을 읽지 못했습니다.</p>'}</div>
+        </div>
+        <div class="section"><h3>확인할 것</h3><ul>${(warnings.length ? warnings : (live?.bullets || card.bullets)).map(x=>`<li>${cleanText(x, 130)}</li>`).join('')}</ul></div>`;
+    }
+    function formatEventTime(e) {
+      if (e.all_day) return '';
+      const s = String(e.start || '').slice(11,16);
+      return s || '';
+    }
+    function eventLine(e, max=32) {
+      const t = formatEventTime(e);
+      return `${t ? t + ' ' : ''}${cleanText(e.summary, max)}`;
+    }
+    function eventDate(e) { return String(e.start || '').slice(0,10); }
+    function isoDateLocal(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const day = String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    }
+    function renderCalendarDateOnly(live, date) {
+      const events = live?.detail?.events || [];
+      const items = events.filter(e => eventDate(e) === date);
+      const list = items.length
+        ? `<ul>${items.map(e => `<li><span class="badge ${e.category === 'chill' ? 'warn' : e.category === 'airbnb' ? 'ok' : e.category === 'coupang' ? 'ok' : 'unknown'}">${e.category === 'chill' ? '칠링' : e.category === 'airbnb' ? '숙소' : e.category === 'coupang' ? '쿠팡' : '개인'}</span> ${eventLine(e, 140)}</li>`).join('')}</ul>`
+        : '<p class="subtitle">일정 없음</p>';
+      return `<div class="section"><h3>${date} 상세 일정</h3>${list}</div>`;
+    }
+    function renderCalendarDetail(live, card) {
+      if (selectedCalendarDateOnly) return renderCalendarDateOnly(live, selectedCalendarDateOnly);
+      const events = live?.detail?.events || [];
+      const today = live?.detail?.today || new Date().toISOString().slice(0,10);
+      const base = new Date(today + 'T00:00:00');
+      const year = base.getFullYear();
+      const month = base.getMonth();
+      const first = new Date(year, month, 1);
+      const last = new Date(year, month + 1, 0);
+      const gridStart = new Date(first);
+      gridStart.setDate(first.getDate() - first.getDay());
+      const days = [];
+      for (let i=0; i<42; i++) {
+        const d = new Date(gridStart);
+        d.setDate(gridStart.getDate() + i);
+        days.push(d);
+      }
+      const grouped = {};
+      events.forEach(e => { const k = eventDate(e); (grouped[k] ||= []).push(e); });
+      const counts = live?.detail?.counts || {};
+      const cells = days.map(d => {
+        const iso = isoDateLocal(d);
+        const items = grouped[iso] || [];
+        const visible = items.slice(0, 3);
+        const classes = ['day-cell'];
+        if (d.getMonth() !== month) classes.push('out');
+        if (iso === today) classes.push('today');
+        return `<div class="${classes.join(' ')}" data-calendar-date="${iso}"><div class="day-num">${d.getDate()}</div>${visible.map(e => `<div class="event-pill ${e.category || 'personal'}" title="${cleanText(e.summary, 120)}">${eventLine(e, 32)}</div>`).join('')}${items.length > 3 ? `<div class="event-pill more">+${items.length-3}개 더</div>` : ''}</div>`;
+      }).join('');
+      const todayItems = grouped[today] || [];
+      const todayDetail = todayItems.length ? `<ul>${todayItems.map(e => `<li>${eventLine(e, 90)}</li>`).join('')}</ul>` : '<p class="subtitle">일정 없음</p>';
+      return `<div class="calendar-shell">
+        <div class="calendar-summary">
+          <div class="mini"><div class="label">오늘</div><strong>${todayItems.length}개</strong></div>
+          <div class="mini"><div class="label">칠링스페이스</div><strong>${counts.chill || 0}건</strong></div>
+          <div class="mini"><div class="label">에어비앤비</div><strong>${counts.airbnb || 0}건</strong></div>
+          <div class="mini"><div class="label">쿠팡</div><strong>${counts.coupang || 0}건</strong></div>
+          <div class="mini"><div class="label">내 일정/할 일</div><strong>${counts.personal || 0}건</strong></div>
+        </div>
+        <div class="calendar-legend"><span><i class="legend-dot" style="background:#fff3e7;border:1px solid #fed7aa"></i>칠링</span><span><i class="legend-dot" style="background:#ecfeff;border:1px solid #a5f3fc"></i>에어비앤비</span><span><i class="legend-dot" style="background:#dcfce7;border:1px solid #86efac"></i>쿠팡</span><span><i class="legend-dot" style="background:#f1f5f9;border:1px solid #cbd5e1"></i>내 일정</span><span>날짜를 누르면 아래에 상세 내역이 나옵니다</span></div>
+        <div><h3>${year}년 ${month + 1}월</h3><div class="calendar-grid">${['일','월','화','수','목','금','토'].map(x=>`<div class="dow">${x}</div>`).join('')}${cells}</div></div>
+        <div class="section" id="calendarDayDetail" data-selected-date="${today}"><h3>${today} 자세히</h3>${todayDetail}</div>
+      </div>`;
+    }
+    function updateCalendarDayDetail(date) {
+      const live = liveCard('calendar');
+      const events = live?.detail?.events || [];
+      const items = events.filter(e => eventDate(e) === date);
+      const box = document.getElementById('calendarDayDetail');
+      if (!box) return;
+      document.querySelectorAll('.day-cell.selected-day').forEach(el => el.classList.remove('selected-day'));
+      document.querySelector(`[data-calendar-date="${date}"]`)?.classList.add('selected-day');
+      const list = items.length
+        ? `<ul>${items.map(e => `<li><span class="badge ${e.category === 'chill' ? 'warn' : e.category === 'airbnb' ? 'ok' : e.category === 'coupang' ? 'ok' : 'unknown'}">${e.category === 'chill' ? '칠링' : e.category === 'airbnb' ? '숙소' : e.category === 'coupang' ? '쿠팡' : '개인'}</span> ${eventLine(e, 120)}</li>`).join('')}</ul>`
+        : '<p class="subtitle">일정 없음</p>';
+      box.dataset.selectedDate = date;
+      box.innerHTML = `<h3>${date} 자세히</h3>${list}`;
+    }
+    function attachCalendarHandlers() {
+      document.querySelectorAll('[data-calendar-date]').forEach(cell => cell.addEventListener('click', () => updateCalendarDayDetail(cell.dataset.calendarDate)));
+      const today = liveCard('calendar')?.detail?.today;
+      if (today) document.querySelector(`[data-calendar-date="${today}"]`)?.classList.add('selected-day');
+    }
+    function renderChillDetail(live, card) {
+      const d = live?.detail || {};
+      const reservations = d.reservations || [];
+      const drafts = d.blog_drafts || [];
+      return `
+        <div class="section"><h3>예약</h3>${reservations.length ? `<ul>${reservations.map(r => `<li>${r.title_safe ? cleanText(r.title_safe, 90) + ' · ' : ''}${r.time_range || ''}${r.people ? ' · ' + r.people : ''}</li>`).join('')}</ul>` : '<p class="subtitle">이번 달 캘린더 기준 칠링 예약 없음</p>'}</div>
+        <div class="section"><h3>업무 일정</h3>${(d.work_items || []).length ? `<ul>${d.work_items.map(x => `<li>${x.time_range ? x.time_range + ' · ' : ''}${cleanText(x.title, 100)}</li>`).join('')}</ul>` : '<p class="subtitle">칠링 업무 일정 없음</p>'}</div>
+        <div class="section"><h3>청소</h3><p>${cleanText(d.cleaning_status || '미확인')}</p></div>
+        <div class="section"><h3>마케팅 확인</h3><ul>${(d.marketing_warnings || []).map(x=>`<li>${cleanText(x, 100)}</li>`).join('')}</ul></div>
+        <div class="section"><h3>블로그 초안</h3>${drafts.length ? `<ul>${drafts.slice(0,5).map(f=>`<li>${cleanText(f.name, 90)}</li>`).join('')}</ul>` : '<p class="subtitle">대기 초안 없음</p>'}</div>`;
+    }
+    function renderInaworldDetail(live, card) {
+      const d = live?.detail || {};
+      return `
+        <div class="section"><h3>촬영 후보</h3><ul>${(d.shooting_candidates || live?.bullets || []).slice(0,5).map(x=>`<li>${cleanText(x, 130)}</li>`).join('')}</ul></div>
+        <div class="section"><h3>편집 우선순위</h3><ul>${(d.editing_priorities || []).slice(0,5).map(x=>`<li>${cleanText(x, 130)}</li>`).join('') || '<li>확인 필요</li>'}</ul></div>
+        <div class="section"><h3>콘텐츠 추천 기준</h3><ul>${(d.content_recommendations || []).slice(0,5).map(x=>`<li>${cleanText(x, 130)}</li>`).join('') || '<li>개선로그 확인 필요</li>'}</ul></div>`;
+    }
+    function renderInboxDetail(live, card) {
+      const files = live?.detail?.latest_files || [];
+      return `<div class="section"><h3>최근 인박스</h3>${files.length ? `<ul>${files.map(f=>`<li>${cleanText(f.name, 100)}</li>`).join('')}</ul>` : '<p class="subtitle">최근 인박스 항목 없음</p>'}</div>`;
+    }
+    function renderAiDetail(live, card) {
+      const items = live?.detail?.items || [];
+      return `<div class="section"><h3>AI 뉴스</h3>${items.length ? `<ul>${items.map(n=>`<li>${n.link ? `<a href="${n.link}" target="_blank">${cleanText(n.title, 100)}</a>` : cleanText(n.title, 100)}${n.summary ? ` — ${cleanText(n.summary, 120)}` : ''}</li>`).join('')}</ul>` : '<p class="subtitle">뉴스 수집이 아직 없습니다.</p>'}</div>`;
+    }
+    function renderGenericDetail(live, card) {
+      const bullets = (live?.bullets || card.bullets).slice(0, 10);
+      return `<div class="section"><h3>지금 볼 것</h3><ul>${bullets.map(b => `<li>${cleanText(b, 130)}</li>`).join('')}</ul></div>`;
+    }
+    function renderMainDetail(live, card) {
+      if (card.id === 'finance') return renderFinanceDetail(live, card);
+      if (card.id === 'calendar') return renderCalendarDetail(live, card);
+      if (card.id === 'chill') return renderChillDetail(live, card);
+      if (card.id === 'inaworld') return renderInaworldDetail(live, card);
+      if (card.id === 'inbox') return renderInboxDetail(live, card);
+      if (card.id === 'ai') return renderAiDetail(live, card);
+      return renderGenericDetail(live, card);
+    }
+    function renderDetail() {
+      const card = baseCards.find(c => c.id === selected) || baseCards[0];
+      const live = liveCard(card.id);
+      const [text, cls] = statusFor(card);
+      const main = renderMainDetail(live, card);
+      document.getElementById('detail').innerHTML = `
+        <div class="detail-head">
+          <div><h2 class="detail-title">${card.detailTitle}</h2></div>
+          <span class="badge ${cls}">${text}</span>
+        </div>
+        <div class="detail-body single">
+          <div class="pane">${main}</div>
+        </div>`;
+    }
+    function openDetail() {
+      document.body.classList.add('detail-open');
+      renderDetail();
+      if (selected === 'finance') attachFinanceHandlers();
+      if (selected === 'calendar') attachCalendarHandlers();
+    }
+    function closeDetail() { document.body.classList.remove('detail-open'); selectedCalendarDateOnly = null; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function render() {
+      renderStatus();
+      renderCards();
+      if (document.body.classList.contains('detail-open')) {
+        renderDetail();
+        if (selected === 'finance') attachFinanceHandlers();
+        if (selected === 'calendar') attachCalendarHandlers();
+      }
+    }
+    document.getElementById('backHome').addEventListener('click', closeDetail);
+    async function fetchSupabaseSnapshot() {
+      const cfg = window.DASHBOARD_SUPABASE || {};
+      if (!cfg.url || !cfg.anonKey) return null;
+      const endpoint = `${cfg.url.replace(/\/$/, '')}/rest/v1/dashboard_snapshots?select=snapshot,created_at&order=created_at.desc&limit=1`;
+      const res = await fetch(endpoint, {
+        headers: { apikey: cfg.anonKey, Authorization: `Bearer ${cfg.anonKey}` },
+        cache: 'no-store'
+      });
+      if (!res.ok) throw new Error(`supabase ${res.status}`);
+      const rows = await res.json();
+      return rows?.[0]?.snapshot || null;
+    }
+    async function loadSnapshot() {
+      try {
+        snapshot = await fetchSupabaseSnapshot();
+      } catch (e) {
+        console.warn('supabase snapshot load failed; falling back to bundled snapshot', e);
+      }
+      if (snapshot) return;
+      try {
+        const res = await fetch('data/snapshot.json?ts=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) snapshot = await res.json();
+      } catch (e) {
+        console.warn('snapshot load failed', e);
+      }
+    }
+    async function refreshSnapshot() {
+      const btn = document.getElementById('actualRefresh');
+      btn.disabled = true;
+      btn.textContent = '불러오는 중...';
+      try {
+        await loadSnapshot();
+        render();
+        btn.textContent = '새로고침';
+      } catch (e) {
+        btn.textContent = '새로고침 실패';
+        document.getElementById('globalAlert').style.display = 'block';
+        document.getElementById('globalAlert').textContent = '클라우드 스냅샷을 불러오지 못해 마지막 저장본을 보여줍니다.';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+    document.getElementById('actualRefresh').addEventListener('click', refreshSnapshot);
+    loadSnapshot().then(render);
+  </script>
+</body>
+</html>
