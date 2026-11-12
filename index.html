@@ -343,7 +343,7 @@
         </div>
         <div class="status-strip" id="statusStrip"></div>
         <div class="controls">
-          <button class="refresh-btn" id="actualRefresh">최신 스냅샷 불러오기</button>
+          <button class="refresh-btn" id="actualRefresh">PC 최신화 요청</button>
         </div>
         <div class="alert" id="globalAlert"></div>
       </div>
@@ -881,6 +881,32 @@
       const rows = await res.json();
       return rows?.[0]?.snapshot ? { ...rows[0].snapshot, meta: { ...(rows[0].snapshot.meta || {}), supabase_saved_at: rows[0].created_at } } : null;
     }
+    async function requestPcRefresh() {
+      const cfg = window.DASHBOARD_SUPABASE || {};
+      if (!cfg.url || !cfg.anonKey) throw new Error('supabase config missing');
+      const endpoint = `${cfg.url.replace(/\/$/, '')}/rest/v1/dashboard_refresh_requests`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          apikey: cfg.anonKey,
+          Authorization: `Bearer ${cfg.anonKey}`,
+          'content-type': 'application/json',
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify({ requested_by: 'cloud_button', status: 'pending' }),
+      });
+      if (!res.ok) throw new Error(`refresh request ${res.status}`);
+      const rows = await res.json();
+      return rows?.[0]?.id;
+    }
+    async function latestRefreshRequest(id) {
+      const cfg = window.DASHBOARD_SUPABASE || {};
+      const endpoint = `${cfg.url.replace(/\/$/, '')}/rest/v1/dashboard_refresh_requests?select=id,status,result,processed_at&order=created_at.desc&limit=1${id ? '&id=eq.' + encodeURIComponent(id) : ''}`;
+      const res = await fetch(endpoint, { headers: { apikey: cfg.anonKey, Authorization: `Bearer ${cfg.anonKey}` }, cache: 'no-store' });
+      if (!res.ok) throw new Error(`refresh status ${res.status}`);
+      const rows = await res.json();
+      return rows?.[0] || null;
+    }
     async function loadSnapshot() {
       try {
         snapshot = await fetchSupabaseSnapshot();
@@ -897,16 +923,33 @@
     }
     async function refreshSnapshot() {
       const btn = document.getElementById('actualRefresh');
+      const alert = document.getElementById('globalAlert');
       btn.disabled = true;
-      btn.textContent = '최신 스냅샷 불러오는 중...';
+      btn.textContent = 'PC에 최신화 요청 중...';
+      alert.style.display = 'block';
+      alert.textContent = 'PC에 최신 스냅샷 생성을 요청했습니다. PC 자동화가 요청을 처리하면 화면이 갱신됩니다.';
       try {
+        const requestId = await requestPcRefresh();
+        for (let i = 0; i < 18; i++) {
+          btn.textContent = `PC 처리 확인 중... ${i + 1}/18`;
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          const req = await latestRefreshRequest(requestId);
+          if (req?.status === 'done') {
+            await loadSnapshot();
+            render();
+            alert.textContent = '최신 PC 스냅샷이 클라우드에 반영됐습니다.';
+            btn.textContent = 'PC 최신화 요청';
+            return;
+          }
+          if (req?.status === 'failed') throw new Error(req.result || 'PC refresh failed');
+        }
         await loadSnapshot();
         render();
-        btn.textContent = '최신 스냅샷 불러오기';
+        alert.textContent = '요청은 접수됐지만 아직 PC 처리가 끝나지 않았습니다. 잠시 뒤 다시 누르면 최신 저장본을 확인합니다.';
+        btn.textContent = 'PC 최신화 요청';
       } catch (e) {
-        btn.textContent = '불러오기 실패';
-        document.getElementById('globalAlert').style.display = 'block';
-        document.getElementById('globalAlert').textContent = '클라우드 스냅샷을 불러오지 못해 마지막 화면을 그대로 보여줍니다.';
+        btn.textContent = '요청 실패';
+        alert.textContent = 'PC 최신화 요청에 실패했습니다. 마지막 클라우드 스냅샷을 그대로 보여줍니다.';
       } finally {
         btn.disabled = false;
       }
