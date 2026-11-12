@@ -482,18 +482,24 @@
     function statusFor(card) {
       return liveStatusTuple(card.id, card.status[currentMode] || card.status.normal);
     }
+    function kstTime(value, fallback='미확인') {
+      if (!value) return fallback;
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return String(value).slice(11,16) || fallback;
+      return d.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit', hour12:false, timeZone:'Asia/Seoul' });
+    }
     function renderStatus() {
       const m = modes[currentMode];
       if (currentMode === 'normal' && snapshot?.meta) {
-        m.pcLast = (snapshot.meta.pc_last_seen_at || '').slice(11,16) || m.pcLast;
-        m.snapshot = (snapshot.meta.generated_at || '').slice(11,16) || m.snapshot;
-        m.sourceSummary = '클라우드 스냅샷 읽음';
-        m.freshness = 'Supabase 최신 저장본';
+        m.pcLast = kstTime(snapshot.meta.pc_last_seen_at || snapshot.meta.generated_at, m.pcLast);
+        m.snapshot = kstTime(snapshot.meta.supabase_saved_at || snapshot.meta.uploaded_at || snapshot.meta.generated_at, m.snapshot);
+        m.sourceSummary = 'Supabase에서 읽음';
+        m.freshness = `PC ${m.pcLast} · 클라우드 ${m.snapshot}`;
       }
       document.getElementById('statusStrip').innerHTML = `
-        <div class="status-box"><div class="label">PC 연결</div><div class="value"><span class="badge ${m.pcClass}">${m.pc}</span></div></div>
-        <div class="status-box"><div class="label">마지막 PC 통신</div><div class="value">${m.pcLast}</div></div>
-        <div class="status-box"><div class="label">마지막 정상 스냅샷</div><div class="value">${m.snapshot}</div></div>
+        <div class="status-box"><div class="label">PC 스냅샷 생성</div><div class="value"><span class="badge ${m.pcClass}">${m.pcLast}</span></div></div>
+        <div class="status-box"><div class="label">클라우드 저장</div><div class="value">${m.snapshot}</div></div>
+        <div class="status-box"><div class="label">자료 상태</div><div class="value"><span class="badge ${m.pcClass}">${m.pc}</span></div></div>
         <div class="status-box"><div class="label">원본/최신성</div><div class="value">${m.sourceSummary} · ${m.freshness}</div></div>`;
       const alert = document.getElementById('globalAlert');
       alert.style.display = m.banner ? 'block' : 'none';
@@ -873,7 +879,7 @@
       });
       if (!res.ok) throw new Error(`supabase ${res.status}`);
       const rows = await res.json();
-      return rows?.[0]?.snapshot || null;
+      return rows?.[0]?.snapshot ? { ...rows[0].snapshot, meta: { ...(rows[0].snapshot.meta || {}), supabase_saved_at: rows[0].created_at } } : null;
     }
     async function loadSnapshot() {
       try {
