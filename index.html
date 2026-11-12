@@ -821,9 +821,8 @@
         <div class="section"><h3>오늘 AI 브리핑 10</h3>${items.length ? `<div class="news-list">${items.map(n=>`
           <article class="flow-detail">
             <h4>${n.rank ? n.rank + '. ' : ''}${n.url ? `<a href="${n.url}" target="_blank">${cleanText(n.title_ko || n.title, 120)}</a>` : cleanText(n.title_ko || n.title, 120)}</h4>
-            <p><strong>핵심:</strong> ${cleanText(n.summary || '', 700)}</p>
-            ${n.secondary_take ? `<p><strong>사람들 해석/활용:</strong> ${cleanText(n.secondary_take, 420)}</p>` : ''}
-            ${n.cj_application ? `<p><strong>찬준님 적용:</strong> ${cleanText(n.cj_application, 350)}</p>` : ''}
+            <p><strong>무슨 내용?</strong> ${cleanText(n.what || n.summary || '', 700)}</p>
+            ${n.why || n.cj_application ? `<p><strong>왜 볼 만함?</strong> ${cleanText(n.why || n.cj_application, 700)}</p>` : ''}
             <div class="subtitle">출처: ${cleanText(n.source || '출처 미확인', 40)} · ${n.category || n.topic || 'AI'} · 중요도 ${n.importance || '보통'}</div>
           </article>`).join('')}</div>` : '<p class="subtitle">AI 브리핑 수집이 아직 없습니다.</p>'}</div>`;
     }
