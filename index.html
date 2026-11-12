@@ -343,7 +343,7 @@
         </div>
         <div class="status-strip" id="statusStrip"></div>
         <div class="controls">
-          <button class="refresh-btn" id="actualRefresh">새로고침</button>
+          <button class="refresh-btn" id="actualRefresh">최신 스냅샷 불러오기</button>
         </div>
         <div class="alert" id="globalAlert"></div>
       </div>
@@ -487,8 +487,8 @@
       if (currentMode === 'normal' && snapshot?.meta) {
         m.pcLast = (snapshot.meta.pc_last_seen_at || '').slice(11,16) || m.pcLast;
         m.snapshot = (snapshot.meta.generated_at || '').slice(11,16) || m.snapshot;
-        m.sourceSummary = '로컬 스냅샷 읽음';
-        m.freshness = '외부 업로드 없음';
+        m.sourceSummary = '클라우드 스냅샷 읽음';
+        m.freshness = 'Supabase 최신 저장본';
       }
       document.getElementById('statusStrip').innerHTML = `
         <div class="status-box"><div class="label">PC 연결</div><div class="value"><span class="badge ${m.pcClass}">${m.pc}</span></div></div>
@@ -892,15 +892,15 @@
     async function refreshSnapshot() {
       const btn = document.getElementById('actualRefresh');
       btn.disabled = true;
-      btn.textContent = '불러오는 중...';
+      btn.textContent = '최신 스냅샷 불러오는 중...';
       try {
         await loadSnapshot();
         render();
-        btn.textContent = '새로고침';
+        btn.textContent = '최신 스냅샷 불러오기';
       } catch (e) {
-        btn.textContent = '새로고침 실패';
+        btn.textContent = '불러오기 실패';
         document.getElementById('globalAlert').style.display = 'block';
-        document.getElementById('globalAlert').textContent = '클라우드 스냅샷을 불러오지 못해 마지막 저장본을 보여줍니다.';
+        document.getElementById('globalAlert').textContent = '클라우드 스냅샷을 불러오지 못해 마지막 화면을 그대로 보여줍니다.';
       } finally {
         btn.disabled = false;
       }
