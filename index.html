@@ -328,7 +328,30 @@
       .calendar-preview { gap:2px; }
       .mini-event { font-size:7.4px; padding:1px 2px; margin-top:1px; line-height:1.08; }
     }
-  </style>
+  
+/* Mobile-first presentation revision. Source data and calculations are unchanged. */
+:root{--bg:#f4f6fa;--panel:#fff;--panel2:#fff;--card:#fff;--text:#172439;--muted:#5f6d80;--line:#e2e7ef;--shadow:0 4px 18px rgba(25,41,65,.045);--radius:18px}
+body{background:var(--bg);line-height:1.6;font-size:16px}
+.app{max-width:1240px;padding:24px 28px 48px}
+.hero{background:#fff;border:1px solid var(--line);padding:24px;box-shadow:none}
+h1{font-size:30px;letter-spacing:-.045em;line-height:1.2}.hero .subtitle{font-size:14px}.demo-pill{display:none}
+.status-strip{gap:10px;margin-top:16px}.status-box{background:#f6f8fb;border:0;padding:10px 12px}.value{font-size:14px}.label{font-size:12px;color:var(--muted)}
+.status-strip .status-box:last-child{display:none}.status-strip{grid-template-columns:repeat(3,minmax(0,1fr))}
+.controls{margin-top:12px}.refresh-btn{font-size:13px;min-height:44px;background:#f3f6fb;color:#354760;border-color:var(--line)}
+.ui-nav{display:flex;gap:7px;overflow-x:auto;padding:14px 0;scrollbar-width:none}.ui-nav a{flex:none;text-decoration:none;background:white;color:#415069;border:1px solid var(--line);border-radius:999px;padding:9px 16px;font-size:14px;font-weight:650;min-height:44px}.ui-nav a:hover{background:#eaf0ff;color:#2556ba}
+.section-title-row{margin:12px 0}.section-title-row h2{font-size:20px}.section-title-row span{font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.card,.ops-card{grid-column:auto;min-width:0;border:1px solid var(--line);border-top:3px solid var(--accent);padding:22px;box-shadow:var(--shadow);border-radius:18px;scroll-margin-top:20px}.calendar-card{grid-column:1/-1}
+.card-head{align-items:center;margin-bottom:16px}.card-head .label{display:none}.card-title{font-size:20px;font-weight:750}.badge{font-size:12px;padding:4px 9px}.metric-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.mini{background:#f6f8fb;border:0;border-radius:12px;padding:12px}.mini strong{font-size:22px;letter-spacing:-.035em;line-height:1.4;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.mini .label{font-size:12px;margin-bottom:6px}
+.card ul{padding-left:20px;margin:18px 0}.card li{font-size:15px;line-height:1.7;margin:8px 0;overflow-wrap:anywhere}.source{font-size:12px;margin-top:18px;padding-top:14px;line-height:1.6}.card:hover{transform:none;border-color:#b6c8e3}.card:focus-visible,.mini-day:focus-visible{outline:3px solid #3675dc;outline-offset:3px}
+.calendar-month{font-size:18px;font-weight:750;margin:0 0 12px}.calendar-preview{gap:6px}.calendar-weekday{text-align:center;font-size:12px;color:var(--muted);padding:5px 0;font-weight:600}.mini-day{min-height:116px;padding:6px;border-radius:10px;font-size:12px;background:#fff}.mini-day .n{font-size:13px;margin-bottom:5px}.mini-day.today{border:2px solid #3867d6;box-shadow:none;background:#f1f5ff}.mini-event{font-size:11px;line-height:1.4;padding:3px 4px;margin-top:3px;white-space:normal;overflow-wrap:anywhere}.mini-day.out{opacity:.5}
+.detail-body,.detail-body.single{display:block}.pane{padding:24px;border:0!important;background:#fff;min-width:0}.detail-head{padding:22px 24px;background:#fff}.detail-title{font-size:25px}.detail-toolbar{position:sticky;top:0;background:var(--bg);z-index:4;padding:10px 0;align-items:center;flex-direction:row}.detail-toolbar .subtitle{font-size:12px}.back-btn{min-height:44px;font-size:14px}.detail .section{margin-bottom:28px}.section h3{font-size:18px;margin-bottom:12px}.section p,.section li{font-size:16px;line-height:1.75;overflow-wrap:anywhere}.section ul{padding-left:22px}.section li{margin:8px 0}.detail .metric-row{grid-template-columns:repeat(2,minmax(0,1fr))}.table{width:100%;border-collapse:collapse}.table td,.table th{font-size:14px;line-height:1.6;padding:13px 10px;overflow-wrap:anywhere}.table tr:nth-child(even){background:#f8fafc}.flow-detail{background:#f5f8ff;border-color:#dce5f5}.footer-note{font-size:12px;line-height:1.7;margin-top:28px;padding:16px;color:#69778a}
+@media(min-width:1000px){.detail .metric-row{grid-template-columns:repeat(4,minmax(0,1fr))}.detail .pane{padding:28px 32px}.card[data-id="ai"]{grid-column:1/-1}}
+@media(max-width:640px){
+body{font-size:15px}.app{padding:12px 10px 32px}.topbar{margin-bottom:4px}.hero{padding:17px 15px;border-radius:16px}h1{font-size:25px}.hero .subtitle{font-size:12px;line-height:1.6;margin-top:6px}.status-strip{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:12px}.status-box{padding:9px 7px}.status-box .label{font-size:10px;line-height:1.4}.status-box .value{font-size:13px;line-height:1.5}.status-box .badge{font-size:12px}.refresh-btn{width:auto;margin-left:auto;font-size:12px;padding:8px 12px;min-height:44px}.controls{display:flex}.ui-nav{gap:6px;padding:12px 0}.ui-nav a{font-size:13px;padding:9px 13px}.section-title-row{display:flex;align-items:center;gap:8px;margin:10px 0}.section-title-row h2{font-size:17px}.section-title-row span{font-size:11px;line-height:1.5}.grid{grid-template-columns:1fr;gap:14px}.card,.ops-card{padding:17px 15px;border-radius:16px}.calendar-card{padding:14px 7px}.card-title{font-size:18px}.card-head{margin-bottom:12px}.calendar-card .card-head{padding:0 5px}.badge{font-size:11px}.mini{padding:12px}.metric-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.mini .label{font-size:11px}.mini strong{font-size:19px}.card li{font-size:15px;line-height:1.75;margin:10px 0}.source{font-size:11px;line-height:1.6}.calendar-month{font-size:16px;margin:8px 5px}.calendar-preview{gap:3px}.calendar-weekday{font-size:11px;padding:4px 0}.mini-day{min-height:112px;padding:3px 2px;border-radius:7px}.mini-day .n{font-size:12px;margin-bottom:4px}.mini-event{font-size:10px;line-height:1.35;padding:3px 2px;white-space:normal;overflow-wrap:anywhere;margin-top:3px}.mini-day.today{border-width:2px}.calendar-grid{gap:3px}.day-cell{min-height:110px;padding:3px}.day-num{font-size:12px}.event-pill{font-size:10px;white-space:normal;line-height:1.4}.detail-toolbar{flex-direction:row;gap:10px;padding:8px 0}.detail-toolbar .subtitle{display:none}.detail-head{padding:18px 15px}.detail-title{font-size:21px}.pane{padding:18px 15px}.detail .metric-row{grid-template-columns:repeat(2,minmax(0,1fr))}.detail .section{margin-bottom:24px}.section h3{font-size:17px}.section p,.section li{font-size:15px;line-height:1.8}.subtitle{font-size:13px;line-height:1.7}.table td,.table th{font-size:12px;padding:10px 5px}.flow-detail{padding:12px}.footer-note{font-size:11px;padding:12px;margin-top:20px}
+}
+
+  @media(max-width:640px){.mini-event{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;max-height:34px}.mini-day{min-height:128px}.card li{display:list-item!important}.card ul{max-height:none}.card:not(.calendar-card) li{display:-webkit-box!important;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.detail .section li{display:list-item!important;max-height:none}.ui-nav{margin-bottom:0}.section-title-row{margin:8px 0}.calendar-card .card-head{margin-bottom:8px}}
+</style>
 </head>
 <body>
   <main class="app">
@@ -350,6 +373,7 @@
     </section>
 
     <section class="home-view">
+<nav class="ui-nav" aria-label="운영실 바로가기"><a href="#panel-calendar">일정</a><a href="#panel-finance">재무</a><a href="#panel-chill">칠링</a><a href="#panel-inaworld">이나월드</a><a href="#panel-inbox">인박스</a><a href="#panel-ai">AI 뉴스</a></nav>
       <div class="section-title-row"><h2>캘린더</h2><span>날짜를 누르면 바로 상세로 들어갑니다</span></div>
       <section class="grid" id="cards"></section>
     </section>
@@ -517,7 +541,8 @@
       const grouped = {};
       events.forEach(e => { const k = eventDate(e); (grouped[k] ||= []).push(e); });
       const cells = [];
-      for (let i=0; i<35; i++) {
+      const cellCount = Math.ceil((first.getDay() + new Date(year, month + 1, 0).getDate()) / 7) * 7;
+      for (let i=0; i<cellCount; i++) {
         const d = new Date(gridStart);
         d.setDate(gridStart.getDate() + i);
         const iso = isoDateLocal(d);
@@ -529,7 +554,7 @@
         const more = items.length > 4 ? `<span class="mini-event personal">+${items.length - 4}개</span>` : '';
         cells.push(`<div class="${cls.join(' ')}" data-calendar-preview-date="${iso}" title="${items.map(e=>cleanText(e.summary,40)).join(', ')}"><span class="n">${d.getDate()}</span>${previews}${more}</div>`);
       }
-      return `<div class="calendar-preview">${cells.join('')}</div>`;
+      return `<div class="calendar-month">${year}년 ${month + 1}월</div><div class="calendar-preview">${["일","월","화","수","목","금","토"].map(x=>`<div class="calendar-weekday">${x}</div>`).join('')}${cells.join('')}</div>`;
     }
     function attachCalendarPreviewHandlers() {
       document.querySelectorAll('[data-calendar-preview-date]').forEach(cell => cell.addEventListener('click', (ev) => {
@@ -540,7 +565,7 @@
       }));
     }
     function renderCards() {
-      const order = ['calendar', 'ai', 'inbox', 'chill', 'inaworld', 'finance'];
+      const order = ['calendar', 'finance', 'chill', 'inaworld', 'inbox', 'ai'];
       const orderedCards = order.map(id => baseCards.find(c => c.id === id)).filter(Boolean);
       document.getElementById('cards').innerHTML = orderedCards.map(card => {
         const [text, cls] = statusFor(card);
@@ -549,9 +574,9 @@
         const bullets = live?.bullets || card.bullets;
         const body = card.id === 'calendar'
           ? calendarPreviewHtml(live)
-          : `<div class="metric-row">${minis.map(([k,v]) => `<div class="mini"><div class="label">${k}</div><strong>${v}</strong></div>`).join('')}</div><ul>${bullets.map(b => `<li>${b}</li>`).join('')}</ul>`;
+          : `<div class="metric-row">${minis.map(([k,v]) => `<div class="mini"><div class="label">${k}</div><strong>${v}</strong></div>`).join('')}</div><ul>${bullets.map(b => `<li>${displayText(b)}</li>`).filter(x=>x!=="<li></li>").join('')}</ul>`;
         const cardClass = card.id === 'calendar' ? 'card calendar-card' : 'card ops-card';
-        return `<article class="${cardClass}" data-id="${card.id}" style="--accent:${({calendar:'#8b5cf6', finance:'#2563eb', chill:'#f97316', inaworld:'#ec4899', inbox:'#14b8a6', ai:'#111827'})[card.id] || '#d8d2c7'}">
+        return `<article class="${cardClass}" id="panel-${card.id}" data-id="${card.id}" tabindex="0" style="--accent:${({calendar:'#8b5cf6', finance:'#2563eb', chill:'#f97316', inaworld:'#ec4899', inbox:'#14b8a6', ai:'#111827'})[card.id] || '#d8d2c7'}">
           <div class="card-head"><div><div class="label">${card.icon}</div><div class="card-title">${card.title}</div></div><span class="badge ${cls}">${text}</span></div>
           ${body}
           <div class="source">원본: ${card.source}<br/>${card.id === 'calendar' ? '날짜를 누르면 상세 내역 열기' : '눌러서 상세 화면 열기'}</div>
@@ -559,6 +584,11 @@
       }).join('');
       document.querySelectorAll('.card').forEach(el => el.addEventListener('click', () => { selected = el.dataset.id; selectedCalendarDateOnly = null; openDetail(); }));
       attachCalendarPreviewHandlers();
+    }
+    function displayText(value) {
+      const raw=String(value || '').trim();
+      if (/^```[a-z]*$/i.test(raw) || /^\|?[\s:|-]+\|$/.test(raw)) return '';
+      return raw.replace(/[*`#>]/g, '').replace(/^-\s*/, '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
     function cleanText(s, max=90) {
       const t = String(s || '')
@@ -856,6 +886,7 @@
     function openDetail() {
       document.body.classList.add('detail-open');
       renderDetail();
+      window.scrollTo({top:0, behavior:'instant'});
       if (selected === 'finance') attachFinanceHandlers();
       if (selected === 'calendar') attachCalendarHandlers();
     }
